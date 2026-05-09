@@ -1,5 +1,5 @@
-import { deploymentTargetLabels, frameworkLabels } from "@deploypilot/shared";
-import { Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle } from "@deploypilot/ui";
+import { deploymentTargetLabels, frameworkLabels } from "@shippy-ops-ai/shared";
+import { Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle } from "@shippy-ops-ai/ui";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowRight, Database, FolderPlus } from "lucide-react";
 import { Link } from "react-router-dom";

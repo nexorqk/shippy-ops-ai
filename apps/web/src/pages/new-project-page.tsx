@@ -7,8 +7,8 @@ import {
   PackageManager,
   ServiceType,
   serviceLabels
-} from "@deploypilot/shared";
-import { Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Input, Label, SecondaryButton, Textarea } from "@deploypilot/ui";
+} from "@shippy-ops-ai/shared";
+import { Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Input, Label, SecondaryButton, Textarea } from "@shippy-ops-ai/ui";
 import { useMutation } from "@tanstack/react-query";
 import { Loader2, Wand2 } from "lucide-react";
 import { useMemo, useState } from "react";

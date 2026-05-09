@@ -1,5 +1,5 @@
-import type { DeploymentPlan } from "@deploypilot/shared";
-import { Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, SecondaryButton } from "@deploypilot/ui";
+import type { DeploymentPlan } from "@shippy-ops-ai/shared";
+import { Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, SecondaryButton } from "@shippy-ops-ai/ui";
 import { useQuery } from "@tanstack/react-query";
 import { CheckCircle2, Clipboard, FileText } from "lucide-react";
 import { useMemo, useState } from "react";

@@ -27,15 +27,15 @@ importers:
 
   apps/api:
     dependencies:
-      '@deploypilot/shared':
-        specifier: workspace:*
-        version: link:../../packages/shared
       '@fastify/cors':
         specifier: ^11.0.1
         version: 11.2.0
       '@prisma/client':
         specifier: ^6.8.2
         version: 6.19.3(prisma@6.19.3(typescript@5.9.3))(typescript@5.9.3)
+      '@shippy-ops-ai/shared':
+        specifier: workspace:*
+        version: link:../../packages/shared
       dotenv:
         specifier: ^16.5.0
         version: 16.6.1
@@ -58,15 +58,15 @@ importers:
 
   apps/web:
     dependencies:
-      '@deploypilot/shared':
-        specifier: workspace:*
-        version: link:../../packages/shared
-      '@deploypilot/ui':
-        specifier: workspace:*
-        version: link:../../packages/ui
       '@hookform/resolvers':
         specifier: ^5.0.1
         version: 5.2.2(react-hook-form@7.75.0(react@19.2.6))
+      '@shippy-ops-ai/shared':
+        specifier: workspace:*
+        version: link:../../packages/shared
+      '@shippy-ops-ai/ui':
+        specifier: workspace:*
+        version: link:../../packages/ui
       '@tanstack/react-query':
         specifier: ^5.76.2
         version: 5.100.9(react@19.2.6)

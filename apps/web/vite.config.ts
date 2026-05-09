@@ -7,8 +7,8 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "src"),
-      "@deploypilot/shared": path.resolve(__dirname, "../../packages/shared/src/index.ts"),
-      "@deploypilot/ui": path.resolve(__dirname, "../../packages/ui/src/index.tsx")
+      "@shippy-ops-ai/shared": path.resolve(__dirname, "../../packages/shared/src/index.ts"),
+      "@shippy-ops-ai/ui": path.resolve(__dirname, "../../packages/ui/src/index.tsx")
     }
   },
   server: {

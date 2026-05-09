@@ -16,7 +16,7 @@ export function AppLayout() {
             <FolderKanban size={18} />
           </div>
           <div>
-            <div className="text-sm font-semibold text-slate-950">DeployPilot AI</div>
+            <div className="text-sm font-semibold text-slate-950">shippy-ops-ai</div>
             <div className="text-xs text-slate-500">VPS deployment copilot</div>
           </div>
         </div>

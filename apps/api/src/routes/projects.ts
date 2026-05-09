@@ -1,4 +1,4 @@
-import { CreateProjectSchema, DeploymentPlanSchema } from "@deploypilot/shared";
+import { CreateProjectSchema, DeploymentPlanSchema } from "@shippy-ops-ai/shared";
 import type { FastifyInstance } from "fastify";
 import { z } from "zod";
 import { ensureDemoUser, prisma } from "../db.js";

@@ -1,6 +1,6 @@
-# DeployPilot AI
+# shippy-ops-ai
 
-DeployPilot AI is a production-oriented SaaS prototype for generating VPS deployment packages for Coolify, Dokploy, and Docker Compose.
+shippy-ops-ai is a production-oriented SaaS prototype for generating VPS deployment packages for Coolify, Dokploy, and Docker Compose.
 
 This repository starts with the first vertical slice:
 

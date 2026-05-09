@@ -1,4 +1,4 @@
-import type { CreateProjectInput, DeploymentPlan } from "@deploypilot/shared";
+import type { CreateProjectInput, DeploymentPlan } from "@shippy-ops-ai/shared";
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:4000";
 

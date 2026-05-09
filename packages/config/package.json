@@ -1,5 +1,5 @@
 {
-  "name": "@deploypilot/config",
+  "name": "@shippy-ops-ai/config",
   "version": "0.1.0",
   "private": true,
   "type": "module",

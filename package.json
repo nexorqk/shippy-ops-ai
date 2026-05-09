@@ -1,14 +1,14 @@
 {
-  "name": "deploypilot-ai",
+  "name": "shippy-ops-ai",
   "version": "0.1.0",
   "private": true,
   "type": "module",
   "packageManager": "pnpm@10.33.4",
   "scripts": {
-    "dev": "concurrently -n api,web -c cyan,green \"pnpm --filter @deploypilot/api dev\" \"pnpm --filter @deploypilot/web dev\"",
-    "build": "pnpm --filter @deploypilot/shared build && pnpm --filter @deploypilot/ui build && pnpm --filter @deploypilot/api build && pnpm --filter @deploypilot/web build",
-    "typecheck": "pnpm --filter @deploypilot/shared build && pnpm --filter @deploypilot/ui build && pnpm --filter @deploypilot/api typecheck && pnpm --filter @deploypilot/web typecheck",
-    "lint": "pnpm --filter @deploypilot/shared lint && pnpm --filter @deploypilot/ui lint && pnpm --filter @deploypilot/api lint && pnpm --filter @deploypilot/web lint",
+    "dev": "concurrently -n api,web -c cyan,green \"pnpm --filter @shippy-ops-ai/api dev\" \"pnpm --filter @shippy-ops-ai/web dev\"",
+    "build": "pnpm --filter @shippy-ops-ai/shared build && pnpm --filter @shippy-ops-ai/ui build && pnpm --filter @shippy-ops-ai/api build && pnpm --filter @shippy-ops-ai/web build",
+    "typecheck": "pnpm --filter @shippy-ops-ai/shared build && pnpm --filter @shippy-ops-ai/ui build && pnpm --filter @shippy-ops-ai/api typecheck && pnpm --filter @shippy-ops-ai/web typecheck",
+    "lint": "pnpm --filter @shippy-ops-ai/shared lint && pnpm --filter @shippy-ops-ai/ui lint && pnpm --filter @shippy-ops-ai/api lint && pnpm --filter @shippy-ops-ai/web lint",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
     "db:seed": "tsx prisma/seed.ts"

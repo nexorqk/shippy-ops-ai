@@ -2,7 +2,7 @@
 
 ## Role for Codex
 
-You are building a production-oriented SaaS called **DeployPilot AI**: an AI deployment copilot for developers who want to deploy web apps to a VPS with Coolify or Dokploy.
+You are building a production-oriented SaaS called **shippy-ops-ai**: an AI deployment copilot for developers who want to deploy web apps to a VPS with Coolify or Dokploy.
 
 The project should be implemented as a real portfolio-grade SaaS, not as a static demo. Prioritize clean architecture, typed code, realistic product flows, readable UI, and deployability.
 
@@ -12,7 +12,7 @@ The target user is a frontend/full-stack developer who has a GitHub repo and a V
 
 ## What We Are Building
 
-**DeployPilot AI** is a SaaS that helps developers deploy applications to a VPS using Coolify, Dokploy, Docker Compose, PostgreSQL, Redis, MinIO/S3, and custom domains.
+**shippy-ops-ai** is a SaaS that helps developers deploy applications to a VPS using Coolify, Dokploy, Docker Compose, PostgreSQL, Redis, MinIO/S3, and custom domains.
 
 A user provides:
 
@@ -1008,7 +1008,7 @@ docker compose up -d postgres redis minio
 Create `.env.example` with at least:
 
 ```env
-DATABASE_URL="postgresql://postgres:postgres@localhost:5432/deploypilot"
+DATABASE_URL="postgresql://postgres:postgres@localhost:5432/shippy_ops_ai"
 REDIS_URL="redis://localhost:6379"
 
 APP_URL="http://localhost:3000"
@@ -1030,7 +1030,7 @@ AUTH_SECRET=""
 S3_ENDPOINT="http://localhost:9000"
 S3_ACCESS_KEY_ID="minioadmin"
 S3_SECRET_ACCESS_KEY="minioadmin"
-S3_BUCKET="deploypilot-artifacts"
+S3_BUCKET="shippy-ops-ai-artifacts"
 S3_REGION="us-east-1"
 
 SENTRY_DSN=""
@@ -1102,7 +1102,7 @@ These can be added later.
 
 Use this positioning in copy and UI:
 
-> DeployPilot AI turns a confusing VPS deployment into a clear, project-specific deployment package: Dockerfile, Compose, env checklist, Coolify/Dokploy steps, DNS notes, and troubleshooting guidance.
+> shippy-ops-ai turns a confusing VPS deployment into a clear, project-specific deployment package: Dockerfile, Compose, env checklist, Coolify/Dokploy steps, DNS notes, and troubleshooting guidance.
 
 Target users:
 
@@ -1134,7 +1134,7 @@ Deploy your app to a VPS without guessing every Docker, DNS, and environment var
 Subheadline:
 
 ```txt
-DeployPilot AI generates a project-specific deployment package for Coolify, Dokploy, or Docker Compose: checklists, Dockerfiles, env templates, troubleshooting guides, and production notes.
+shippy-ops-ai generates a project-specific deployment package for Coolify, Dokploy, or Docker Compose: checklists, Dockerfiles, env templates, troubleshooting guides, and production notes.
 ```
 
 CTA:

@@ -1,6 +1,6 @@
 # Architecture
 
-DeployPilot AI is implemented as a pnpm monorepo.
+shippy-ops-ai is implemented as a pnpm monorepo.
 
 ## Apps
 

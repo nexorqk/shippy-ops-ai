@@ -1,10 +1,10 @@
-# DeployPilot AI Agent Notes
+# shippy-ops-ai Agent Notes
 
 Use this file first when starting a new agent session. It is intentionally compact to save tokens.
 
 ## Product
 
-DeployPilot AI is a SaaS for developers deploying web apps to a VPS with Coolify, Dokploy, or Docker Compose. It generates deployment checklists, Dockerfiles, compose files, env examples, DNS/HTTPS notes, troubleshooting guidance, and reports.
+shippy-ops-ai is a SaaS for developers deploying web apps to a VPS with Coolify, Dokploy, or Docker Compose. It generates deployment checklists, Dockerfiles, compose files, env examples, DNS/HTTPS notes, troubleshooting guidance, and reports.
 
 The source specification is `ai-deployment-copilot-codex.md`, but do not load the whole file unless needed. Prefer this file plus `docs/development-log.md` for current context.
 

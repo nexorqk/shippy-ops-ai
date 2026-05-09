@@ -1,5 +1,5 @@
-import type { DeploymentPlan } from "@deploypilot/shared";
-import { deploymentTargetLabels, frameworkLabels, serviceLabels } from "@deploypilot/shared";
+import type { DeploymentPlan } from "@shippy-ops-ai/shared";
+import { deploymentTargetLabels, frameworkLabels, serviceLabels } from "@shippy-ops-ai/shared";
 import type { DeploymentTemplate, EnvironmentVariable, Project, ProjectService } from "@prisma/client";
 
 type ProjectWithRelations = Project & {
@@ -82,7 +82,7 @@ export function buildFastPlan(project: ProjectWithRelations, template: Deploymen
       "Create a project and attach the repository.",
       "Choose Dockerfile or Compose deployment depending on the generated artifact.",
       `Configure ${project.domain} as the application domain.`,
-      "Add environment variable names from .env.example without pasting secrets into DeployPilot.",
+      "Add environment variable names from .env.example without pasting secrets into shippy-ops-ai.",
       "Deploy and review container logs before routing production traffic."
     ],
     dnsSteps: [

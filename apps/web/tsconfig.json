@@ -6,8 +6,8 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"],
-      "@deploypilot/shared": ["../../packages/shared/src/index.ts"],
-      "@deploypilot/ui": ["../../packages/ui/src/index.tsx"]
+      "@shippy-ops-ai/shared": ["../../packages/shared/src/index.ts"],
+      "@shippy-ops-ai/ui": ["../../packages/ui/src/index.tsx"]
     }
   },
   "include": ["src", "vite.config.ts", "tailwind.config.ts"]

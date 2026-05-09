@@ -1,5 +1,5 @@
-import { deploymentTargetLabels, frameworkLabels } from "@deploypilot/shared";
-import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle } from "@deploypilot/ui";
+import { deploymentTargetLabels, frameworkLabels } from "@shippy-ops-ai/shared";
+import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle } from "@shippy-ops-ai/ui";
 import { useQuery } from "@tanstack/react-query";
 import { Clock } from "lucide-react";
 import { api } from "../lib/api";
