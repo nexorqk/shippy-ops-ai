@@ -1,0 +1,281 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  user
+  admin
+}
+
+enum SubscriptionStatus {
+  free
+  trialing
+  active
+  past_due
+  canceled
+}
+
+enum Plan {
+  free
+  pro
+  team
+}
+
+enum Framework {
+  nextjs
+  react_spa
+  node_api
+  nestjs
+  express
+  laravel
+  go_api
+  static_site
+  unknown
+}
+
+enum PackageManager {
+  npm
+  pnpm
+  yarn
+  bun
+}
+
+enum DeploymentTarget {
+  coolify
+  dokploy
+  docker_compose
+}
+
+enum ProjectStatus {
+  draft
+  ready
+  generating
+  completed
+  failed
+}
+
+enum ServiceType {
+  postgres
+  redis
+  minio
+  rabbitmq
+  worker
+  cron
+  other
+}
+
+enum JobType {
+  fast_plan
+  full_ai_package
+  troubleshooting
+}
+
+enum JobStatus {
+  queued
+  running
+  completed
+  failed
+  canceled
+}
+
+enum ArtifactType {
+  dockerfile
+  compose
+  env_example
+  markdown_report
+  pdf_report
+  zip
+  checklist
+  troubleshooting
+  plan_json
+}
+
+enum ReviewStatus {
+  pending
+  approved
+  rejected
+}
+
+enum ReferralStatus {
+  pending
+  approved
+  rejected
+}
+
+model User {
+  id                 String             @id @default(cuid())
+  email              String             @unique
+  name               String?
+  image              String?
+  role               UserRole           @default(user)
+  stripeCustomerId   String?
+  subscriptionStatus SubscriptionStatus @default(free)
+  plan               Plan               @default(free)
+  referralCode       String             @unique
+  referredByUserId   String?
+  referredByUser     User?              @relation("UserReferrals", fields: [referredByUserId], references: [id])
+  referrals          User[]             @relation("UserReferrals")
+  projects           Project[]
+  jobs               GenerationJob[]
+  templateReviews    TemplateReview[]
+  usageRecords       UsageRecord[]
+  referralRewards    ReferralReward[]   @relation("ReferralRewards")
+  receivedRewards    ReferralReward[]   @relation("ReferredRewards")
+  auditEvents         AdminAuditEvent[]
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+}
+
+model Project {
+  id                   String                @id @default(cuid())
+  userId               String
+  user                 User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name                 String
+  repositoryUrl        String?
+  framework            Framework
+  packageManager       PackageManager
+  deploymentTarget     DeploymentTarget
+  domain               String
+  runtimeVersion       String?
+  status               ProjectStatus         @default(draft)
+  services             ProjectService[]
+  environmentVariables EnvironmentVariable[]
+  jobs                 GenerationJob[]
+  artifacts            DeploymentArtifact[]
+  createdAt            DateTime              @default(now())
+  updatedAt            DateTime              @updatedAt
+}
+
+model ProjectService {
+  id        String      @id @default(cuid())
+  projectId String
+  project   Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  type      ServiceType
+  name      String
+  required  Boolean     @default(true)
+  notes     String?
+}
+
+model EnvironmentVariable {
+  id          String  @id @default(cuid())
+  projectId   String
+  project     Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  key         String
+  required    Boolean @default(true)
+  description String?
+  isSecret    Boolean @default(true)
+}
+
+model GenerationJob {
+  id          String               @id @default(cuid())
+  userId      String
+  user        User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  projectId   String?
+  project     Project?             @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  type        JobType
+  status      JobStatus            @default(queued)
+  currentStep String?
+  progress    Int                  @default(0)
+  errorMessage String?
+  startedAt   DateTime?
+  completedAt DateTime?
+  events      GenerationEvent[]
+  artifacts   DeploymentArtifact[]
+  createdAt   DateTime             @default(now())
+  updatedAt   DateTime             @updatedAt
+}
+
+model GenerationEvent {
+  id           String        @id @default(cuid())
+  jobId        String
+  job          GenerationJob @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  type         String
+  message      String
+  metadataJson Json?
+  createdAt    DateTime      @default(now())
+}
+
+model DeploymentArtifact {
+  id          String       @id @default(cuid())
+  jobId       String
+  job         GenerationJob @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  projectId   String?
+  project     Project?      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  type        ArtifactType
+  filename    String
+  contentText String?
+  storageUrl  String?
+  createdAt   DateTime      @default(now())
+}
+
+model DeploymentTemplate {
+  id                 String           @id @default(cuid())
+  slug               String           @unique
+  title              String
+  description        String
+  framework          Framework
+  deploymentTarget   DeploymentTarget
+  difficulty         String
+  estimatedMinutes   Int
+  requiredServices   String[]
+  contentMarkdown    String
+  dockerfileTemplate String
+  composeTemplate    String
+  envTemplate        String
+  isPublished        Boolean          @default(true)
+  reviews            TemplateReview[]
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+}
+
+model TemplateReview {
+  id         String             @id @default(cuid())
+  templateId String
+  template   DeploymentTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  userId     String
+  user       User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  rating     Int
+  body       String
+  status     ReviewStatus       @default(pending)
+  createdAt  DateTime           @default(now())
+}
+
+model UsageRecord {
+  id            String   @id @default(cuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type          String
+  quantity      Int      @default(1)
+  billingPeriod String
+  createdAt     DateTime @default(now())
+}
+
+model ReferralReward {
+  id             String         @id @default(cuid())
+  referrerUserId String
+  referrerUser   User           @relation("ReferralRewards", fields: [referrerUserId], references: [id], onDelete: Cascade)
+  referredUserId String
+  referredUser   User           @relation("ReferredRewards", fields: [referredUserId], references: [id], onDelete: Cascade)
+  status         ReferralStatus @default(pending)
+  reason         String?
+  referralIpHash String?
+  userAgentHash  String?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+}
+
+model AdminAuditEvent {
+  id           String   @id @default(cuid())
+  actorUserId  String
+  actorUser    User     @relation(fields: [actorUserId], references: [id], onDelete: Cascade)
+  action       String
+  entityType   String
+  entityId     String
+  metadataJson Json?
+  createdAt    DateTime @default(now())
+}

@@ -1,0 +1,99 @@
+# Development Log
+
+This log is for Codex, opencode, and any future model session. Keep entries short and practical.
+
+## 2026-05-09
+
+### Specification Update
+
+- Updated `ai-deployment-copilot-codex.md` frontend stack from Next.js App Router to Vite + React + TypeScript + React Router + Tailwind CSS + shadcn/ui.
+- Made monorepo mandatory from the first implementation pass.
+- Removed the fallback single `src/` structure from the project specification.
+- Left `Next.js` references where they describe customer application types or deployment templates.
+
+### Initial Implementation
+
+Created the first MVP vertical slice:
+
+- `pnpm` monorepo root with `apps/*` and `packages/*`.
+- `apps/web`: Vite React app with React Router, TanStack Query, React Hook Form, Tailwind CSS, and shadcn-style UI components.
+- `apps/api`: Fastify API with Prisma persistence.
+- `packages/shared`: Zod schemas, shared enum labels, and TypeScript types.
+- `packages/ui`: reusable Button, Card, Input, Textarea, Label, Badge, and CodeBlock primitives.
+- `prisma/schema.prisma`: data model for users, projects, services, env variable names, generation jobs, events, artifacts, templates, reviews, usage, referrals, and audit events.
+- `prisma/seed.ts`: six seed templates:
+  - Next.js + PostgreSQL on Coolify
+  - React SPA + Node API on Dokploy
+  - NestJS + Redis + PostgreSQL on Docker Compose
+  - Vite static app on VPS
+  - Laravel + PostgreSQL on Coolify
+  - Go API + PostgreSQL with Docker Compose
+- `infra/docker-compose.yml`: local PostgreSQL, Redis, and MinIO.
+- `docs/architecture.md`, `docs/env.md`, `docs/deployment.md`.
+- `README.md` with local setup instructions.
+
+### Implemented Flow
+
+Current working path:
+
+1. Open `/projects/new`.
+2. Enter project metadata, stack, target, services, and environment variable names.
+3. Web app calls `POST /projects`.
+4. Web app calls `POST /projects/:id/generate/fast`.
+5. API selects the closest seeded template.
+6. API creates a completed `GenerationJob`.
+7. API stores generation events, usage record, and artifacts.
+8. Result page opens `/projects/:projectId/jobs/:jobId`.
+9. User can inspect overview, checklist, Dockerfile, `docker-compose.yml`, `.env.example`, and Markdown report.
+
+### Verification Completed
+
+Commands run successfully:
+
+```bash
+pnpm install
+pnpm db:generate
+pnpm prisma migrate dev --name init
+pnpm db:seed
+pnpm typecheck
+pnpm build
+```
+
+HTTP smoke checks completed:
+
+- `GET /health`
+- `GET /templates`
+- `POST /projects`
+- `POST /projects/:id/generate/fast`
+- `GET /projects`
+
+Temporary smoke-test projects were removed from the local database after verification.
+
+### Active Local Services
+
+At the end of initial implementation, these were running:
+
+- API dev server: `http://localhost:4000`
+- Web dev server: `http://localhost:3000`
+- Docker Compose services: PostgreSQL, Redis, MinIO
+
+Future sessions should verify whether these are still running instead of assuming.
+
+### Known Technical Notes
+
+- API uses a local demo user from `ensureDemoUser()` until auth is implemented.
+- Free usage limit is currently hardcoded to 3 fast plans per billing period in `apps/api/src/lib/usage.ts`.
+- Fast plan generation is deterministic and lives in `apps/api/src/lib/fast-plan.ts`.
+- Template selection order is exact match, then framework match, then deployment target match.
+- `GET /jobs/:id/stream` currently returns a finite SSE snapshot of persisted events. It is not a long-running BullMQ stream yet.
+- Artifacts are stored in PostgreSQL text fields for MVP 1. S3/MinIO artifact storage is a later phase.
+
+### Next Recommended Slice
+
+Implement MVP 2 foundation:
+
+1. Add BullMQ worker package or `apps/worker`.
+2. Add async full AI generation job route.
+3. Convert SSE endpoint into live progress streaming.
+4. Add repository metadata inspection without executing untrusted code.
+5. Add troubleshooting mode with command risk classification.

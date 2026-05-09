@@ -1,0 +1,15 @@
+node_modules
+.vite
+.next
+dist
+coverage
+.env
+.env.local
+.DS_Store
+*.log
+*.swp
+*.swo
+.prisma
+infra/minio/data
+infra/postgres/data
+infra/redis/data
