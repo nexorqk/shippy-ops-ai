@@ -28,6 +28,7 @@ export function NewProjectPage() {
   const navigate = useNavigate();
   const [selectedServices, setSelectedServices] = useState<ServiceType[]>(["postgres"]);
   const [envText, setEnvText] = useState("DATABASE_URL\nAPP_URL");
+  const [generationMode, setGenerationMode] = useState<"fast" | "full">("fast");
 
   const form = useForm<FormInput, unknown, FormValues>({
     resolver: zodResolver(CreateProjectSchema),
@@ -61,7 +62,10 @@ export function NewProjectPage() {
           .map((key) => ({ key, required: true, description: "", isSecret: key.includes("SECRET") || key.includes("TOKEN") || key.includes("KEY") }))
       };
       const { project } = await api.createProject(input);
-      const { job } = await api.generateFastPlan(project.id);
+      const { job } =
+        generationMode === "fast"
+          ? await api.generateFastPlan(project.id)
+          : await api.generateFullPackage(project.id);
       return { project, job };
     },
     onSuccess: ({ project, job }) => {
@@ -177,18 +181,40 @@ export function NewProjectPage() {
               <CardDescription>{scenario}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  className={`rounded-md border px-3 py-2 text-left text-sm transition ${
+                    generationMode === "fast" ? "border-slate-950 bg-slate-950 text-white" : "border-slate-200 bg-white text-slate-700"
+                  }`}
+                  onClick={() => setGenerationMode("fast")}
+                >
+                  Fast plan
+                </button>
+                <button
+                  type="button"
+                  className={`rounded-md border px-3 py-2 text-left text-sm transition ${
+                    generationMode === "full" ? "border-slate-950 bg-slate-950 text-white" : "border-slate-200 bg-white text-slate-700"
+                  }`}
+                  onClick={() => setGenerationMode("full")}
+                >
+                  Full package
+                </button>
+              </div>
               <div className="flex flex-wrap gap-2">
                 {selectedServices.map((service) => (
                   <Badge key={service}>{serviceLabels[service]}</Badge>
                 ))}
               </div>
               <p className="text-sm leading-6 text-slate-500">
-                The API will create a project, select the closest template, generate artifacts, and persist the completed job.
+                {generationMode === "fast"
+                  ? "The API will create a project, select the closest template, generate artifacts, and persist the completed job."
+                  : "The API will queue a mock full generation job and stream progress from the worker."}
               </p>
               {mutation.error ? <p className="text-sm text-red-600">{(mutation.error as Error).message}</p> : null}
               <Button className="w-full" disabled={mutation.isPending}>
                 {mutation.isPending ? <Loader2 className="animate-spin" size={16} /> : <Wand2 size={16} />}
-                Generate fast plan
+                {generationMode === "fast" ? "Generate fast plan" : "Queue full package"}
               </Button>
               <SecondaryButton type="button" className="w-full" onClick={() => form.reset()}>
                 Reset form

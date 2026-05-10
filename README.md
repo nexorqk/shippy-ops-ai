@@ -6,6 +6,7 @@ This repository starts with the first vertical slice:
 
 - Vite + React + TypeScript web app with React Router
 - Fastify + TypeScript API
+- BullMQ worker foundation for long-running generation jobs
 - Prisma + PostgreSQL persistence
 - Seeded deployment template catalog
 - Fast template-based generation flow
@@ -49,7 +50,7 @@ pnpm db:seed
 pnpm dev
 ```
 
-The web app runs on `http://localhost:3000`; the API runs on `http://localhost:4000`.
+The web app runs on `http://localhost:3000`; the API runs on `http://localhost:4000`. `pnpm dev` also starts the worker process.
 
 ## Current Flow
 
@@ -61,3 +62,8 @@ Open `/projects/new`, enter a project, and generate a fast deployment plan. The 
 - generation job
 - generation events
 - generated Dockerfile, Compose file, env example, checklist, and Markdown report
+
+The project wizard supports two generation modes:
+
+- Fast plan: deterministic template generation completed inside the API request.
+- Full package: queued BullMQ job processed by `apps/worker` with live SSE progress events.

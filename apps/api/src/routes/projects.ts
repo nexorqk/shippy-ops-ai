@@ -3,6 +3,7 @@ import type { FastifyInstance } from "fastify";
 import { z } from "zod";
 import { ensureDemoUser, prisma } from "../db.js";
 import { buildFastPlan, planToMarkdown } from "../lib/fast-plan.js";
+import { fullGenerationQueue } from "../lib/queue.js";
 import { assertFastPlanLimit, currentBillingPeriod } from "../lib/usage.js";
 
 const IdParamsSchema = z.object({ id: z.string().min(1) });
@@ -199,6 +200,61 @@ export async function registerProjectRoutes(app: FastifyInstance) {
     });
 
     return reply.code(201).send({ job: completedJob, plan });
+  });
+
+  app.post<{ Params: { id: string } }>("/projects/:id/generate/full", async (request, reply) => {
+    const params = IdParamsSchema.parse(request.params);
+    const user = await ensureDemoUser();
+
+    const project = await prisma.project.findFirst({
+      where: { id: params.id, userId: user.id },
+      select: { id: true }
+    });
+
+    if (!project) {
+      return reply.code(404).send({ message: "Project not found" });
+    }
+
+    const job = await prisma.$transaction(async (tx) => {
+      await tx.project.update({
+        where: { id: project.id },
+        data: { status: "generating" }
+      });
+
+      return tx.generationJob.create({
+        data: {
+          userId: user.id,
+          projectId: project.id,
+          type: "full_ai_package",
+          status: "queued",
+          currentStep: "queued",
+          progress: 0,
+          events: {
+            create: {
+              type: "queued",
+              message: "Full deployment package queued."
+            }
+          }
+        },
+        include: { events: { orderBy: { createdAt: "asc" } }, artifacts: true }
+      });
+    });
+
+    await fullGenerationQueue.add(
+      "full-generation",
+      {
+        generationJobId: job.id,
+        projectId: project.id,
+        userId: user.id
+      },
+      {
+        attempts: 1,
+        removeOnComplete: 100,
+        removeOnFail: 100
+      }
+    );
+
+    return reply.code(202).send({ job });
   });
 }
 

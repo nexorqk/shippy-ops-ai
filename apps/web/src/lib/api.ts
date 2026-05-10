@@ -1,6 +1,6 @@
 import type { CreateProjectInput, DeploymentPlan } from "@shippy-ops-ai/shared";
 
-const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:4000";
+export const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:4000";
 
 export type ApiProject = {
   id: string;
@@ -78,6 +78,11 @@ export const api = {
     request<{ job: ApiJob; plan: DeploymentPlan }>(`/projects/${projectId}/generate/fast`, {
       method: "POST"
     }),
+  generateFullPackage: (projectId: string) =>
+    request<{ job: ApiJob }>(`/projects/${projectId}/generate/full`, {
+      method: "POST"
+    }),
   getJob: (jobId: string) => request<{ job: ApiJob }>(`/jobs/${jobId}`),
+  jobStreamUrl: (jobId: string) => `${API_URL}/jobs/${jobId}/stream`,
   listTemplates: () => request<{ templates: ApiTemplate[] }>("/templates")
 };

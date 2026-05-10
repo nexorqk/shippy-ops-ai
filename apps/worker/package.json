@@ -1,24 +1,21 @@
 {
-  "name": "@shippy-ops-ai/api",
+  "name": "@shippy-ops-ai/worker",
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "main": "dist/server.js",
+  "main": "dist/worker.js",
   "scripts": {
-    "dev": "pnpm --filter @shippy-ops-ai/shared build && tsx watch src/server.ts",
+    "dev": "pnpm --filter @shippy-ops-ai/shared build && tsx watch src/worker.ts",
     "build": "tsc -p tsconfig.json",
-    "start": "node dist/server.js",
+    "start": "node dist/worker.js",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@shippy-ops-ai/shared": "workspace:*",
-    "@fastify/cors": "^11.0.1",
     "@prisma/client": "^6.8.2",
+    "@shippy-ops-ai/shared": "workspace:*",
     "bullmq": "^5.53.2",
-    "dotenv": "^16.5.0",
-    "fastify": "^5.3.3",
-    "zod": "^3.25.28"
+    "dotenv": "^16.5.0"
   },
   "devDependencies": {
     "@types/node": "^22.15.21",

@@ -2,7 +2,7 @@ import type { DeploymentPlan } from "@shippy-ops-ai/shared";
 import { Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, SecondaryButton } from "@shippy-ops-ai/ui";
 import { useQuery } from "@tanstack/react-query";
 import { CheckCircle2, Clipboard, FileText } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { api, type ApiArtifact } from "../lib/api";
 
@@ -12,7 +12,9 @@ type Tab = (typeof tabs)[number];
 export function ProjectResultPage() {
   const { jobId } = useParams();
   const [activeTab, setActiveTab] = useState<Tab>("Overview");
-  const { data, isLoading, error } = useQuery({
+  const [liveEvents, setLiveEvents] = useState<Array<{ id: string; type: string; message: string; createdAt: string }>>([]);
+  const [liveSnapshot, setLiveSnapshot] = useState<{ status: string; progress: number; currentStep: string | null } | null>(null);
+  const { data, isLoading, error, refetch } = useQuery({
     queryKey: ["job", jobId],
     queryFn: () => api.getJob(jobId!),
     enabled: Boolean(jobId)
@@ -20,6 +22,53 @@ export function ProjectResultPage() {
 
   const artifacts = data?.job.artifacts ?? [];
   const plan = useMemo(() => parsePlan(artifacts), [artifacts]);
+  const status = liveSnapshot?.status ?? data?.job.status;
+  const progress = liveSnapshot?.progress ?? data?.job.progress ?? 0;
+  const currentStep = liveSnapshot?.currentStep ?? data?.job.currentStep;
+  const events = liveEvents.length > 0 ? liveEvents : data?.job.events ?? [];
+
+  useEffect(() => {
+    if (!jobId || !data?.job || ["completed", "failed", "canceled"].includes(data.job.status)) return;
+
+    const source = new EventSource(api.jobStreamUrl(jobId));
+
+    source.addEventListener("snapshot", (event) => {
+      const snapshot = JSON.parse(event.data) as { status: string; progress: number; currentStep: string | null };
+      setLiveSnapshot(snapshot);
+
+      if (["completed", "failed", "canceled"].includes(snapshot.status)) {
+        void refetch();
+        source.close();
+      }
+    });
+
+    const addProgressEvent = (event: MessageEvent<string>) => {
+      const parsed = JSON.parse(event.data) as { id?: string; type: string; message: string; createdAt?: string };
+      if (!parsed.id) return;
+      const eventId = parsed.id;
+      setLiveEvents((current) => {
+        if (current.some((item) => item.id === eventId)) return current;
+        return [...current, { id: eventId, type: parsed.type, message: parsed.message, createdAt: parsed.createdAt ?? new Date().toISOString() }];
+      });
+    };
+
+    [
+      "queued",
+      "starting_full_generation",
+      "fetching_repository",
+      "analyzing_project_structure",
+      "detecting_framework",
+      "checking_environment_requirements",
+      "generating_dockerfile",
+      "generating_compose_file",
+      "generating_troubleshooting_guide",
+      "exporting_report",
+      "completed",
+      "failed"
+    ].forEach((eventName) => source.addEventListener(eventName, addProgressEvent));
+
+    return () => source.close();
+  }, [data?.job, jobId, refetch]);
 
   if (isLoading) {
     return <Card><CardContent className="pt-5 text-sm text-slate-500">Loading generation result...</CardContent></Card>;
@@ -35,7 +84,7 @@ export function ProjectResultPage() {
         <div>
           <div className="mb-2 flex items-center gap-2">
             <Badge>{data.job.type}</Badge>
-            <Badge className="border-emerald-200 bg-emerald-50 text-emerald-700">{data.job.status}</Badge>
+            <Badge className="border-emerald-200 bg-emerald-50 text-emerald-700">{status}</Badge>
           </div>
           <h1 className="text-2xl font-semibold text-slate-950">Deployment plan result</h1>
           <p className="mt-1 text-sm text-slate-500">Saved artifacts from the fast template generation job.</p>
@@ -48,10 +97,11 @@ export function ProjectResultPage() {
       <Card>
         <CardContent className="pt-5">
           <div className="mb-4 h-2 overflow-hidden rounded-full bg-slate-100">
-            <div className="h-full bg-emerald-500" style={{ width: `${data.job.progress}%` }} />
+            <div className="h-full bg-emerald-500 transition-all" style={{ width: `${progress}%` }} />
           </div>
+          <div className="mb-4 text-sm text-slate-500">Current step: {currentStep ?? "queued"}</div>
           <div className="grid gap-3 md:grid-cols-3">
-            {data.job.events?.map((event) => (
+            {events.map((event) => (
               <div key={event.id} className="flex items-start gap-2 text-sm text-slate-600">
                 <CheckCircle2 className="mt-0.5 text-emerald-600" size={16} />
                 <span>{event.message}</span>
@@ -76,11 +126,13 @@ export function ProjectResultPage() {
       </div>
 
       {activeTab === "Overview" && plan ? <Overview plan={plan} /> : null}
+      {activeTab === "Overview" && !plan ? <PendingArtifacts /> : null}
       {activeTab === "Checklist" && plan ? <Checklist plan={plan} /> : null}
+      {activeTab === "Checklist" && !plan ? <PendingArtifacts /> : null}
       {activeTab === "Dockerfile" ? <ArtifactBlock artifact={findArtifact(artifacts, "Dockerfile")} /> : null}
       {activeTab === "docker-compose.yml" ? <ArtifactBlock artifact={findArtifact(artifacts, "docker-compose.yml")} /> : null}
       {activeTab === ".env.example" ? <ArtifactBlock artifact={findArtifact(artifacts, ".env.example")} /> : null}
-      {activeTab === "Report" ? <ArtifactBlock artifact={findArtifact(artifacts, "deployment-report.md")} /> : null}
+      {activeTab === "Report" ? <ArtifactBlock artifact={findArtifact(artifacts, "deployment-report.md") ?? findArtifact(artifacts, "full-deployment-report.md")} /> : null}
     </div>
   );
 }
@@ -167,13 +219,25 @@ function ArtifactBlock({ artifact }: { artifact?: ApiArtifact }) {
 }
 
 function parsePlan(artifacts: ApiArtifact[]): DeploymentPlan | null {
-  const json = artifacts.find((artifact) => artifact.filename === "deployment-plan.json")?.contentText;
+  const json = artifacts.find((artifact) => artifact.filename === "deployment-plan.json" || artifact.filename === "full-deployment-plan.json")?.contentText;
   if (!json) return null;
   try {
     return JSON.parse(json) as DeploymentPlan;
   } catch {
     return null;
   }
+}
+
+function PendingArtifacts() {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Generation in progress</CardTitle>
+        <CardDescription>Artifacts will appear here when the worker completes the job.</CardDescription>
+      </CardHeader>
+      <CardContent className="text-sm text-slate-500">Keep this page open to watch live SSE progress events.</CardContent>
+    </Card>
+  );
 }
 
 function findArtifact(artifacts: ApiArtifact[], filename: string) {

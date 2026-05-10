@@ -5,10 +5,10 @@
   "type": "module",
   "packageManager": "pnpm@10.33.4",
   "scripts": {
-    "dev": "concurrently -n api,web -c cyan,green \"pnpm --filter @shippy-ops-ai/api dev\" \"pnpm --filter @shippy-ops-ai/web dev\"",
-    "build": "pnpm --filter @shippy-ops-ai/shared build && pnpm --filter @shippy-ops-ai/ui build && pnpm --filter @shippy-ops-ai/api build && pnpm --filter @shippy-ops-ai/web build",
-    "typecheck": "pnpm --filter @shippy-ops-ai/shared build && pnpm --filter @shippy-ops-ai/ui build && pnpm --filter @shippy-ops-ai/api typecheck && pnpm --filter @shippy-ops-ai/web typecheck",
-    "lint": "pnpm --filter @shippy-ops-ai/shared lint && pnpm --filter @shippy-ops-ai/ui lint && pnpm --filter @shippy-ops-ai/api lint && pnpm --filter @shippy-ops-ai/web lint",
+    "dev": "concurrently -n api,worker,web -c cyan,yellow,green \"pnpm --filter @shippy-ops-ai/api dev\" \"pnpm --filter @shippy-ops-ai/worker dev\" \"pnpm --filter @shippy-ops-ai/web dev\"",
+    "build": "pnpm --filter @shippy-ops-ai/shared build && pnpm --filter @shippy-ops-ai/ui build && pnpm --filter @shippy-ops-ai/api build && pnpm --filter @shippy-ops-ai/worker build && pnpm --filter @shippy-ops-ai/web build",
+    "typecheck": "pnpm --filter @shippy-ops-ai/shared build && pnpm --filter @shippy-ops-ai/ui build && pnpm --filter @shippy-ops-ai/api typecheck && pnpm --filter @shippy-ops-ai/worker typecheck && pnpm --filter @shippy-ops-ai/web typecheck",
+    "lint": "pnpm --filter @shippy-ops-ai/shared lint && pnpm --filter @shippy-ops-ai/ui lint && pnpm --filter @shippy-ops-ai/api lint && pnpm --filter @shippy-ops-ai/worker lint && pnpm --filter @shippy-ops-ai/web lint",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
     "db:seed": "tsx prisma/seed.ts"

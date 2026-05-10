@@ -16,7 +16,7 @@ Monorepo from the start.
 - Frontend: Vite + React + TypeScript + React Router + Tailwind CSS + shadcn-style UI
 - Backend: Fastify + TypeScript
 - Database: PostgreSQL + Prisma
-- Queue later: Redis + BullMQ
+- Queue: Redis + BullMQ
 - Storage later: MinIO/S3
 - AI later: OpenRouter with validated Zod outputs
 - Billing later: Stripe test mode
@@ -25,6 +25,7 @@ Monorepo from the start.
 
 - `apps/web`: Vite authenticated app
 - `apps/api`: Fastify API
+- `apps/worker`: BullMQ worker for queued full generation jobs
 - `packages/shared`: Zod schemas, labels, shared TS types
 - `packages/ui`: reusable shadcn-style React primitives
 - `packages/config`: shared config placeholder
@@ -34,7 +35,7 @@ Monorepo from the start.
 
 ## Current MVP Status
 
-Implemented MVP 1 vertical slice:
+Implemented MVP 1 vertical slice plus MVP 2 foundation:
 
 1. Create project in UI.
 2. API persists project, selected services, and env variable names.
@@ -42,13 +43,14 @@ Implemented MVP 1 vertical slice:
 4. API creates a generation job, events, usage record, and artifacts.
 5. Result page shows overview, checklist, Dockerfile, compose file, env example, and report.
 6. Template catalog is seeded and viewable.
+7. Full package generation can be queued through BullMQ.
+8. `apps/worker` processes mock full generation jobs and persists progress events.
+9. Result page listens to live SSE snapshots/events.
 
 Not implemented yet:
 
 - OAuth/session auth beyond local demo user
-- Full AI generation
-- BullMQ worker
-- Long-running SSE progress stream
+- Real AI generation with OpenRouter
 - Stripe billing
 - Admin dashboard
 - Referral system
@@ -101,7 +103,7 @@ API: `http://localhost:4000`
 - Keep the monorepo shape. Do not collapse into a single `src/` app.
 - Do not store real secret values. Only store environment variable names unless encrypted storage is explicitly added.
 - Fast generation must stay deterministic and template-based. Do not call AI for the fast flow by default.
-- Full AI generation should be queued later and must not execute untrusted repository code.
+- Real AI generation must stay queued and must not execute untrusted repository code.
 - Validate browser and API inputs with Zod.
 - Server-side usage limits must be enforced in API code.
 - Prefer small vertical slices over broad unfinished scaffolding.

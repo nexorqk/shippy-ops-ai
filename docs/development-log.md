@@ -90,10 +90,52 @@ Future sessions should verify whether these are still running instead of assumin
 
 ### Next Recommended Slice
 
-Implement MVP 2 foundation:
+At the time of this entry, the next planned slice was MVP 2 foundation: BullMQ worker, async full generation route, live SSE progress, repository metadata inspection, and troubleshooting mode.
 
-1. Add BullMQ worker package or `apps/worker`.
-2. Add async full AI generation job route.
-3. Convert SSE endpoint into live progress streaming.
-4. Add repository metadata inspection without executing untrusted code.
-5. Add troubleshooting mode with command risk classification.
+## 2026-05-10
+
+### Project Rename
+
+- Renamed product/package references from DeployPilot AI to `shippy-ops-ai`.
+- Workspace packages now use `@shippy-ops-ai/*`.
+- Local infra names now use `shippy-ops-ai-*`; database name is `shippy_ops_ai`.
+
+### MVP 2 Foundation
+
+Added async full generation foundation:
+
+- Added `apps/worker` with BullMQ worker process.
+- Added `full-generation` queue backed by Redis.
+- Added `POST /projects/:id/generate/full`.
+- Added persisted progress events for queued, running, step updates, completed, and failed states.
+- Converted `GET /jobs/:id/stream` into a live SSE stream backed by database polling.
+- Added UI generation mode selector: Fast plan or Full package.
+- Result page now listens to SSE snapshots/events and refreshes artifacts when a job completes.
+
+The full generation implementation is intentionally a mock repository-aware pipeline for now. It simulates the worker stages and persists a generated package, but it does not call OpenRouter or inspect a remote repository yet.
+
+### Verification Completed
+
+Commands run successfully:
+
+```bash
+pnpm prisma migrate dev
+pnpm db:seed
+pnpm typecheck
+pnpm build
+```
+
+HTTP smoke checks completed:
+
+- `POST /projects`
+- `POST /projects/:id/generate/full`
+- `GET /jobs/:id`
+- `GET /jobs/:id/artifacts`
+
+The smoke full generation job reached `completed` and persisted six artifacts. The temporary smoke-test project was removed from the local database after verification.
+
+Recommended next slice:
+
+1. Add real repository metadata inspection without executing code.
+2. Add troubleshooting mode with risk-classified diagnostic commands.
+3. Replace mock full generation content with OpenRouter structured JSON output.
