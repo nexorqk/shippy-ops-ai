@@ -14,9 +14,10 @@ Use `.env.example` as the local starting point.
 
 ## Reserved for Later Phases
 
-- `OPENROUTER_API_KEY`
-- `OPENROUTER_MODEL_FAST`
-- `OPENROUTER_MODEL_STRONG`
+- `OPENROUTER_API_KEY`: Enables AI generation on the API/worker only.
+- `OPENROUTER_MODEL_FAST`: Used for AI troubleshooting.
+- `OPENROUTER_MODEL_STRONG`: Used for full deployment package generation.
+
 - `STRIPE_SECRET_KEY`
 - `STRIPE_WEBHOOK_SECRET`
 - `STRIPE_PRICE_ID_PRO`

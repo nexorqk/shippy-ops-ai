@@ -1,6 +1,7 @@
 import { TroubleshootingInputSchema } from "@shippy-ops-ai/shared";
 import type { FastifyInstance } from "fastify";
 import { prisma } from "../db.js";
+import { generateTroubleshootingReportWithOpenRouter, isOpenRouterTroubleshootingConfigured } from "../lib/openrouter.js";
 import { requireUser } from "../lib/auth.js";
 import { buildTroubleshootingReport } from "../lib/troubleshooting.js";
 
@@ -9,7 +10,8 @@ export async function registerTroubleshootRoutes(app: FastifyInstance) {
     const input = TroubleshootingInputSchema.parse(request.body);
     const user = await requireUser(request, reply);
     if (!user) return;
-    const report = buildTroubleshootingReport(input);
+    const generation = await generateReport(input);
+    const report = generation.report;
 
     const job = await prisma.generationJob.create({
       data: {
@@ -24,7 +26,7 @@ export async function registerTroubleshootRoutes(app: FastifyInstance) {
         events: {
           create: [
             { type: "queued", message: "Troubleshooting report queued." },
-            { type: "completed", message: "Troubleshooting report completed." }
+            { type: "completed", message: "Troubleshooting report completed.", metadataJson: { mode: generation.mode, fallbackReason: generation.fallbackReason } }
           ]
         },
         artifacts: {
@@ -49,6 +51,30 @@ export async function registerTroubleshootRoutes(app: FastifyInstance) {
 
     return reply.code(201).send({ job, report });
   });
+}
+
+async function generateReport(input: ReturnType<typeof TroubleshootingInputSchema.parse>) {
+  if (!isOpenRouterTroubleshootingConfigured()) {
+    return {
+      mode: "rules",
+      fallbackReason: "OpenRouter is not configured.",
+      report: buildTroubleshootingReport(input)
+    };
+  }
+
+  try {
+    return {
+      mode: "openrouter",
+      fallbackReason: null,
+      report: await generateTroubleshootingReportWithOpenRouter(input)
+    };
+  } catch (error) {
+    return {
+      mode: "rules",
+      fallbackReason: error instanceof Error ? error.message : "OpenRouter troubleshooting failed.",
+      report: buildTroubleshootingReport(input)
+    };
+  }
 }
 
 function reportToMarkdown(title: string, report: ReturnType<typeof buildTroubleshootingReport>) {

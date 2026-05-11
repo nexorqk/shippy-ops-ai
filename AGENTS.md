@@ -51,15 +51,16 @@ Implemented MVP 1 vertical slice plus MVP 2 foundation:
 12. Result page has normalized artifact names, guidance tabs, and Markdown download.
 13. Google OAuth/session foundation exists; local dev uses demo admin fallback unless `ALLOW_DEMO_AUTH=false`.
 14. Admin MVP exists at `/admin` with metrics, users, and jobs.
+15. OpenRouter integration exists for full generation and troubleshooting, with deterministic fallback when env is missing or validation fails.
 
 Not implemented yet:
 
 - OAuth/session auth beyond local demo user
 - Full production auth hardening beyond Google OAuth MVP
-- Real AI generation with OpenRouter
+- Production-tested real AI prompts and model tuning
 - Private repository access
 - Stripe billing
-- Admin dashboard
+- Detailed admin dashboard beyond MVP metrics/lists
 - Referral system
 - PDF/ZIP export
 - Marketing app

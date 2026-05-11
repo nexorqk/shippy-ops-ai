@@ -62,6 +62,8 @@ export function ProjectResultPage() {
       "generating_dockerfile",
       "generating_compose_file",
       "generating_troubleshooting_guide",
+      "calling_ai_model",
+      "ai_fallback",
       "exporting_report",
       "completed",
       "failed"

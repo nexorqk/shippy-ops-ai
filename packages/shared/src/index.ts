@@ -98,6 +98,71 @@ export const DeploymentPlanSchema = z.object({
   }))
 });
 
+export const DeploymentPlanJsonSchema = {
+  type: "object",
+  additionalProperties: false,
+  required: ["summary", "detectedStack", "checklist", "files", "coolifySteps", "dokploySteps", "dnsSteps", "securityNotes", "troubleshooting"],
+  properties: {
+    summary: { type: "string" },
+    detectedStack: {
+      type: "object",
+      additionalProperties: false,
+      required: ["framework", "runtime", "packageManager", "database", "cache", "storage"],
+      properties: {
+        framework: { type: "string" },
+        runtime: { type: "string" },
+        packageManager: { type: "string" },
+        database: { type: "string" },
+        cache: { type: "string" },
+        storage: { type: "string" }
+      }
+    },
+    checklist: {
+      type: "array",
+      items: {
+        type: "object",
+        additionalProperties: false,
+        required: ["title", "description", "severity"],
+        properties: {
+          title: { type: "string" },
+          description: { type: "string" },
+          severity: { type: "string", enum: ["info", "warning", "critical"] }
+        }
+      }
+    },
+    files: {
+      type: "array",
+      items: {
+        type: "object",
+        additionalProperties: false,
+        required: ["filename", "language", "content"],
+        properties: {
+          filename: { type: "string" },
+          language: { type: "string" },
+          content: { type: "string" }
+        }
+      }
+    },
+    coolifySteps: { type: "array", items: { type: "string" } },
+    dokploySteps: { type: "array", items: { type: "string" } },
+    dnsSteps: { type: "array", items: { type: "string" } },
+    securityNotes: { type: "array", items: { type: "string" } },
+    troubleshooting: {
+      type: "array",
+      items: {
+        type: "object",
+        additionalProperties: false,
+        required: ["symptom", "likelyCause", "fix"],
+        properties: {
+          symptom: { type: "string" },
+          likelyCause: { type: "string" },
+          fix: { type: "string" }
+        }
+      }
+    }
+  }
+} as const;
+
 export const TroubleshootingReportSchema = z.object({
   likelyRootCause: z.string(),
   confidence: z.enum(["low", "medium", "high"]),
@@ -115,6 +180,45 @@ export const TroubleshootingReportSchema = z.object({
   })),
   prevention: z.array(z.string())
 });
+
+export const TroubleshootingReportJsonSchema = {
+  type: "object",
+  additionalProperties: false,
+  required: ["likelyRootCause", "confidence", "severity", "explanation", "diagnosticSteps", "fixes", "prevention"],
+  properties: {
+    likelyRootCause: { type: "string" },
+    confidence: { type: "string", enum: ["low", "medium", "high"] },
+    severity: { type: "string", enum: ["low", "medium", "high", "critical"] },
+    explanation: { type: "string" },
+    diagnosticSteps: {
+      type: "array",
+      items: {
+        type: "object",
+        additionalProperties: false,
+        required: ["command", "purpose", "risk"],
+        properties: {
+          command: { type: "string" },
+          purpose: { type: "string" },
+          risk: { type: "string", enum: ["read_only", "changes_system", "destructive"] }
+        }
+      }
+    },
+    fixes: {
+      type: "array",
+      items: {
+        type: "object",
+        additionalProperties: false,
+        required: ["title", "steps", "risk"],
+        properties: {
+          title: { type: "string" },
+          steps: { type: "array", items: { type: "string" } },
+          risk: { type: "string", enum: ["low", "medium", "high"] }
+        }
+      }
+    },
+    prevention: { type: "array", items: { type: "string" } }
+  }
+} as const;
 
 export type Framework = z.infer<typeof FrameworkSchema>;
 export type PackageManager = z.infer<typeof PackageManagerSchema>;

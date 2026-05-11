@@ -70,6 +70,10 @@ The project wizard supports two generation modes:
 - Fast plan: deterministic template generation completed inside the API request.
 - Full package: queued BullMQ job processed by `apps/worker` with live SSE progress events.
 
+Full package generation uses OpenRouter when `OPENROUTER_API_KEY` and `OPENROUTER_MODEL_STRONG` are set. If OpenRouter is not configured or returns invalid JSON, the worker falls back to deterministic repository-aware generation.
+
+Troubleshooting uses OpenRouter when `OPENROUTER_API_KEY` and `OPENROUTER_MODEL_FAST` or `OPENROUTER_MODEL_STRONG` are set. If unavailable, it falls back to rules-based diagnosis.
+
 ## Auth and Admin
 
 Local development uses a demo admin user unless `ALLOW_DEMO_AUTH=false`.

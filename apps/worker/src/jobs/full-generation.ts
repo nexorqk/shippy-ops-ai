@@ -4,6 +4,7 @@ import type { DeploymentTemplate, EnvironmentVariable, Project, ProjectService }
 import { prisma } from "../db.js";
 import type { FullGenerationQueueData } from "../lib/queue.js";
 import { inspectRepositoryIfAvailable } from "../lib/repository-inspector.js";
+import { generateDeploymentPlanWithOpenRouter, isOpenRouterConfigured } from "../lib/openrouter.js";
 
 type ProjectWithRelations = Project & {
   services: ProjectService[];
@@ -52,7 +53,8 @@ export async function processFullGenerationJob(data: FullGenerationQueueData) {
   }
 
   const inspection = await inspectRepositoryIfAvailable(project.repositoryUrl);
-  const plan = DeploymentPlanSchema.parse(buildMockRepositoryAwarePlan(project, template, inspection));
+  const generation = await generatePlan(project, template, inspection, data.generationJobId);
+  const plan = generation.plan;
   const markdown = planToMarkdown(project, plan);
 
   await prisma.$transaction(async (tx) => {
@@ -62,8 +64,8 @@ export async function processFullGenerationJob(data: FullGenerationQueueData) {
           jobId: data.generationJobId,
           projectId: project.id,
           type: "plan_json",
-            filename: "deployment-plan.json",
-            contentText: JSON.stringify(plan, null, 2)
+          filename: "deployment-plan.json",
+          contentText: JSON.stringify(plan, null, 2)
         },
         ...plan.files.map((file) => ({
           jobId: data.generationJobId,
@@ -94,7 +96,7 @@ export async function processFullGenerationJob(data: FullGenerationQueueData) {
         jobId: data.generationJobId,
         type: "completed",
         message: "Full deployment package completed.",
-        metadataJson: { templateSlug: template.slug, mode: "mock_repository_aware", inspection }
+        metadataJson: { templateSlug: template.slug, mode: generation.mode, inspection, fallbackReason: generation.fallbackReason }
       }
     });
 
@@ -113,6 +115,40 @@ export async function processFullGenerationJob(data: FullGenerationQueueData) {
       }
     });
   });
+}
+
+async function generatePlan(
+  project: ProjectWithRelations,
+  template: DeploymentTemplate,
+  inspection: Awaited<ReturnType<typeof inspectRepositoryIfAvailable>>,
+  jobId: string
+) {
+  if (!isOpenRouterConfigured()) {
+    return {
+      mode: "mock_repository_aware",
+      fallbackReason: "OpenRouter is not configured.",
+      plan: DeploymentPlanSchema.parse(buildMockRepositoryAwarePlan(project, template, inspection))
+    };
+  }
+
+  await addProgress(jobId, "calling_ai_model", "Calling OpenRouter for structured deployment plan.", 90);
+
+  try {
+    return {
+      mode: "openrouter",
+      fallbackReason: null,
+      plan: await generateDeploymentPlanWithOpenRouter({ project, template, inspection })
+    };
+  } catch (error) {
+    const fallbackReason = error instanceof Error ? error.message : "OpenRouter generation failed.";
+    await addProgress(jobId, "ai_fallback", `AI generation failed; using deterministic fallback. ${fallbackReason.slice(0, 180)}`, 92);
+
+    return {
+      mode: "mock_repository_aware",
+      fallbackReason,
+      plan: DeploymentPlanSchema.parse(buildMockRepositoryAwarePlan(project, template, inspection))
+    };
+  }
 }
 
 async function markRunning(jobId: string, currentStep: string, message: string, progress: number) {

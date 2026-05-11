@@ -221,3 +221,24 @@ pnpm typecheck
 pnpm test
 pnpm build
 ```
+
+### OpenRouter Integration
+
+Added optional real AI generation:
+
+- Added OpenRouter clients for worker full generation and API troubleshooting.
+- Full package worker calls OpenRouter when `OPENROUTER_API_KEY` and `OPENROUTER_MODEL_STRONG` are configured.
+- Troubleshooting calls OpenRouter when `OPENROUTER_API_KEY` and `OPENROUTER_MODEL_FAST` or `OPENROUTER_MODEL_STRONG` are configured.
+- AI responses are requested with JSON Schema and always validated with Zod:
+  - `DeploymentPlanSchema`
+  - `TroubleshootingReportSchema`
+- If OpenRouter is not configured, fails, or returns invalid JSON, the app falls back to deterministic generation/rules.
+- SSE now includes `calling_ai_model` and `ai_fallback` events.
+
+Verification required:
+
+```bash
+pnpm typecheck
+pnpm test
+pnpm build
+```
