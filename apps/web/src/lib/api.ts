@@ -1,4 +1,4 @@
-import type { CreateProjectInput, DeploymentPlan } from "@shippy-ops-ai/shared";
+import type { CreateProjectInput, DeploymentPlan, RepositoryInspection, TroubleshootingInput, TroubleshootingReport } from "@shippy-ops-ai/shared";
 
 export const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:4000";
 
@@ -81,6 +81,16 @@ export const api = {
   generateFullPackage: (projectId: string) =>
     request<{ job: ApiJob }>(`/projects/${projectId}/generate/full`, {
       method: "POST"
+    }),
+  inspectRepository: (repositoryUrl: string) =>
+    request<{ inspection: RepositoryInspection }>("/repositories/inspect", {
+      method: "POST",
+      body: JSON.stringify({ repositoryUrl })
+    }),
+  troubleshoot: (input: TroubleshootingInput) =>
+    request<{ job: ApiJob; report: TroubleshootingReport }>("/troubleshoot", {
+      method: "POST",
+      body: JSON.stringify(input)
     }),
   getJob: (jobId: string) => request<{ job: ApiJob }>(`/jobs/${jobId}`),
   jobStreamUrl: (jobId: string) => `${API_URL}/jobs/${jobId}/stream`,

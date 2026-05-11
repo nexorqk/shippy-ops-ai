@@ -46,11 +46,15 @@ Implemented MVP 1 vertical slice plus MVP 2 foundation:
 7. Full package generation can be queued through BullMQ.
 8. `apps/worker` processes mock full generation jobs and persists progress events.
 9. Result page listens to live SSE snapshots/events.
+10. Public GitHub repository inspection reads allowlisted metadata files without executing code.
+11. Troubleshooting mode creates risk-classified diagnostic reports.
+12. Result page has normalized artifact names, guidance tabs, and Markdown download.
 
 Not implemented yet:
 
 - OAuth/session auth beyond local demo user
 - Real AI generation with OpenRouter
+- Private repository access
 - Stripe billing
 - Admin dashboard
 - Referral system
@@ -90,6 +94,7 @@ Validate:
 
 ```bash
 pnpm typecheck
+pnpm test
 pnpm build
 ```
 
@@ -114,5 +119,5 @@ API: `http://localhost:4000`
 2. Read `docs/development-log.md`.
 3. Only inspect files directly related to the task.
 4. Use `rg` for search.
-5. Run `pnpm typecheck` and `pnpm build` after code changes.
+5. Run `pnpm typecheck`, `pnpm test`, and `pnpm build` after code changes.
 6. Append meaningful changes to `docs/development-log.md`.

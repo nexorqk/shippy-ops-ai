@@ -3,6 +3,7 @@ import { DeploymentPlanSchema, deploymentTargetLabels, frameworkLabels, serviceL
 import type { DeploymentTemplate, EnvironmentVariable, Project, ProjectService } from "@prisma/client";
 import { prisma } from "../db.js";
 import type { FullGenerationQueueData } from "../lib/queue.js";
+import { inspectRepositoryIfAvailable } from "../lib/repository-inspector.js";
 
 type ProjectWithRelations = Project & {
   services: ProjectService[];
@@ -50,7 +51,8 @@ export async function processFullGenerationJob(data: FullGenerationQueueData) {
     throw new Error("No deployment template is available. Run pnpm db:seed first.");
   }
 
-  const plan = DeploymentPlanSchema.parse(buildMockRepositoryAwarePlan(project, template));
+  const inspection = await inspectRepositoryIfAvailable(project.repositoryUrl);
+  const plan = DeploymentPlanSchema.parse(buildMockRepositoryAwarePlan(project, template, inspection));
   const markdown = planToMarkdown(project, plan);
 
   await prisma.$transaction(async (tx) => {
@@ -60,8 +62,8 @@ export async function processFullGenerationJob(data: FullGenerationQueueData) {
           jobId: data.generationJobId,
           projectId: project.id,
           type: "plan_json",
-          filename: "full-deployment-plan.json",
-          contentText: JSON.stringify(plan, null, 2)
+            filename: "deployment-plan.json",
+            contentText: JSON.stringify(plan, null, 2)
         },
         ...plan.files.map((file) => ({
           jobId: data.generationJobId,
@@ -74,14 +76,14 @@ export async function processFullGenerationJob(data: FullGenerationQueueData) {
           jobId: data.generationJobId,
           projectId: project.id,
           type: "markdown_report",
-          filename: "full-deployment-report.md",
+          filename: "deployment-report.md",
           contentText: markdown
         },
         {
           jobId: data.generationJobId,
           projectId: project.id,
           type: "checklist",
-          filename: "full-deployment-checklist.md",
+          filename: "deployment-checklist.md",
           contentText: plan.checklist.map((item) => `- [ ] ${item.title}: ${item.description}`).join("\n")
         }
       ]
@@ -92,7 +94,7 @@ export async function processFullGenerationJob(data: FullGenerationQueueData) {
         jobId: data.generationJobId,
         type: "completed",
         message: "Full deployment package completed.",
-        metadataJson: { templateSlug: template.slug, mode: "mock_repository_aware" }
+        metadataJson: { templateSlug: template.slug, mode: "mock_repository_aware", inspection }
       }
     });
 
@@ -159,19 +161,22 @@ async function selectTemplate(project: ProjectWithRelations) {
   );
 }
 
-function buildMockRepositoryAwarePlan(project: ProjectWithRelations, template: DeploymentTemplate): DeploymentPlan {
+function buildMockRepositoryAwarePlan(project: ProjectWithRelations, template: DeploymentTemplate, inspection: Awaited<ReturnType<typeof inspectRepositoryIfAvailable>>): DeploymentPlan {
   const serviceSummary = project.services.map((service) => serviceLabels[service.type]).join(", ") || "No managed services";
-  const envKeys = project.environmentVariables.map((envVar) => envVar.key);
+  const envKeys = Array.from(new Set([...project.environmentVariables.map((envVar) => envVar.key), ...(inspection?.detectedEnvVars ?? [])]));
   const postgres = project.services.find((service) => service.type === "postgres");
   const redis = project.services.find((service) => service.type === "redis");
   const minio = project.services.find((service) => service.type === "minio");
+  const detectedFramework = inspection?.detectedFramework ? frameworkLabels[inspection.detectedFramework] : frameworkLabels[project.framework];
+  const detectedPackageManager = inspection?.detectedPackageManager ?? project.packageManager;
+  const detectedServices = inspection?.detectedServices?.length ? inspection.detectedServices.map((service) => serviceLabels[service]).join(", ") : serviceSummary;
 
   return {
-    summary: `Repository-aware mock package for ${project.name}: ${frameworkLabels[project.framework]} deployed to ${deploymentTargetLabels[project.deploymentTarget]} at ${project.domain}. Services: ${serviceSummary}.`,
+    summary: `Repository-aware package for ${project.name}: ${detectedFramework} deployed to ${deploymentTargetLabels[project.deploymentTarget]} at ${project.domain}. Services: ${detectedServices}. ${inspection ? `Inspected files: ${inspection.filesFound.join(", ") || "none"}.` : "No repository URL was provided."}`,
     detectedStack: {
-      framework: frameworkLabels[project.framework],
+      framework: detectedFramework,
       runtime: project.runtimeVersion ?? runtimeForFramework(project.framework),
-      packageManager: project.packageManager,
+      packageManager: detectedPackageManager,
       database: postgres ? serviceLabels[postgres.type] : undefined,
       cache: redis ? serviceLabels[redis.type] : undefined,
       storage: minio ? serviceLabels[minio.type] : undefined
@@ -179,7 +184,7 @@ function buildMockRepositoryAwarePlan(project: ProjectWithRelations, template: D
     checklist: [
       {
         title: "Review generated artifacts",
-        description: "This mock full package simulates repository analysis and should be reviewed before production use.",
+        description: inspection ? `Repository inspection read ${inspection.filesFound.length} allowlisted files without executing code.` : "No repository URL was provided, so generation used project inputs and templates.",
         severity: "warning"
       },
       {

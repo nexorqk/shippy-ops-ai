@@ -29,6 +29,7 @@ export function NewProjectPage() {
   const [selectedServices, setSelectedServices] = useState<ServiceType[]>(["postgres"]);
   const [envText, setEnvText] = useState("DATABASE_URL\nAPP_URL");
   const [generationMode, setGenerationMode] = useState<"fast" | "full">("fast");
+  const [inspectionSummary, setInspectionSummary] = useState<string>("");
 
   const form = useForm<FormInput, unknown, FormValues>({
     resolver: zodResolver(CreateProjectSchema),
@@ -73,6 +74,17 @@ export function NewProjectPage() {
     }
   });
 
+  const inspectMutation = useMutation({
+    mutationFn: () => api.inspectRepository(form.getValues("repositoryUrl") ?? ""),
+    onSuccess: ({ inspection }) => {
+      if (inspection.detectedFramework) form.setValue("framework", inspection.detectedFramework);
+      if (inspection.detectedPackageManager) form.setValue("packageManager", inspection.detectedPackageManager);
+      if (inspection.detectedEnvVars.length > 0) setEnvText(inspection.detectedEnvVars.join("\n"));
+      if (inspection.detectedServices.length > 0) setSelectedServices(inspection.detectedServices);
+      setInspectionSummary(`Read ${inspection.filesFound.length} files on ${inspection.branch ?? "default branch"}: ${inspection.filesFound.join(", ") || "none"}`);
+    }
+  });
+
   const selectedTarget = form.watch("deploymentTarget");
   const selectedFramework = form.watch("framework");
   const scenario = useMemo(() => `${frameworkLabels[selectedFramework]} on ${deploymentTargetLabels[selectedTarget]}`, [selectedFramework, selectedTarget]);
@@ -98,6 +110,14 @@ export function NewProjectPage() {
               <Field label="GitHub repository URL" error={form.formState.errors.repositoryUrl?.message}>
                 <Input placeholder="https://github.com/acme/app" {...form.register("repositoryUrl")} />
               </Field>
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                <SecondaryButton type="button" onClick={() => inspectMutation.mutate()} disabled={inspectMutation.isPending}>
+                  {inspectMutation.isPending ? <Loader2 className="animate-spin" size={16} /> : null}
+                  Inspect repository
+                </SecondaryButton>
+                {inspectionSummary ? <p className="text-sm text-slate-500">{inspectionSummary}</p> : null}
+                {inspectMutation.error ? <p className="text-sm text-red-600">{(inspectMutation.error as Error).message}</p> : null}
+              </div>
               <Field label="Domain" error={form.formState.errors.domain?.message}>
                 <Input placeholder="app.example.com" {...form.register("domain")} />
               </Field>

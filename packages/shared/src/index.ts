@@ -19,6 +19,28 @@ export const JobTypeSchema = z.enum(["fast_plan", "full_ai_package", "troublesho
 export const JobStatusSchema = z.enum(["queued", "running", "completed", "failed", "canceled"]);
 export const ServiceTypeSchema = z.enum(["postgres", "redis", "minio", "rabbitmq", "worker", "cron", "other"]);
 
+export const RepositoryInspectionSchema = z.object({
+  repositoryUrl: z.string().url(),
+  provider: z.literal("github"),
+  owner: z.string(),
+  repo: z.string(),
+  branch: z.string().optional(),
+  filesFound: z.array(z.string()),
+  detectedFramework: FrameworkSchema.optional(),
+  detectedPackageManager: PackageManagerSchema.optional(),
+  detectedServices: z.array(ServiceTypeSchema),
+  detectedEnvVars: z.array(z.string()),
+  notes: z.array(z.string())
+});
+
+export const TroubleshootingInputSchema = z.object({
+  projectId: z.string().optional(),
+  title: z.string().trim().min(2).max(160).default("Deployment troubleshooting"),
+  deploymentTarget: DeploymentTargetSchema.optional(),
+  logs: z.string().trim().min(10).max(20000),
+  context: z.string().trim().max(2000).optional().default("")
+});
+
 export const EnvironmentVariableInputSchema = z.object({
   key: z.string().trim().min(1).max(120).regex(/^[A-Z0-9_]+$/, "Use uppercase env var names"),
   required: z.boolean().default(true),
@@ -101,6 +123,8 @@ export type ServiceType = z.infer<typeof ServiceTypeSchema>;
 export type CreateProjectInput = z.infer<typeof CreateProjectSchema>;
 export type DeploymentPlan = z.infer<typeof DeploymentPlanSchema>;
 export type TroubleshootingReport = z.infer<typeof TroubleshootingReportSchema>;
+export type RepositoryInspection = z.infer<typeof RepositoryInspectionSchema>;
+export type TroubleshootingInput = z.infer<typeof TroubleshootingInputSchema>;
 
 export const frameworkLabels: Record<Framework, string> = {
   nextjs: "Next.js",

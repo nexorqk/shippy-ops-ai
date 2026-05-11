@@ -9,6 +9,7 @@
     "build": "pnpm --filter @shippy-ops-ai/shared build && pnpm --filter @shippy-ops-ai/ui build && pnpm --filter @shippy-ops-ai/api build && pnpm --filter @shippy-ops-ai/worker build && pnpm --filter @shippy-ops-ai/web build",
     "typecheck": "pnpm --filter @shippy-ops-ai/shared build && pnpm --filter @shippy-ops-ai/ui build && pnpm --filter @shippy-ops-ai/api typecheck && pnpm --filter @shippy-ops-ai/worker typecheck && pnpm --filter @shippy-ops-ai/web typecheck",
     "lint": "pnpm --filter @shippy-ops-ai/shared lint && pnpm --filter @shippy-ops-ai/ui lint && pnpm --filter @shippy-ops-ai/api lint && pnpm --filter @shippy-ops-ai/worker lint && pnpm --filter @shippy-ops-ai/web lint",
+    "test": "vitest run",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
     "db:seed": "tsx prisma/seed.ts"
@@ -20,7 +21,8 @@
     "concurrently": "^9.1.2",
     "prisma": "^6.8.2",
     "tsx": "^4.19.4",
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "vitest": "^3.1.4"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

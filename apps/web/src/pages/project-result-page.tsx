@@ -1,12 +1,12 @@
 import type { DeploymentPlan } from "@shippy-ops-ai/shared";
 import { Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, SecondaryButton } from "@shippy-ops-ai/ui";
 import { useQuery } from "@tanstack/react-query";
-import { CheckCircle2, Clipboard, FileText } from "lucide-react";
+import { CheckCircle2, Clipboard, Download, FileText } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { api, type ApiArtifact } from "../lib/api";
 
-const tabs = ["Overview", "Checklist", "Dockerfile", "docker-compose.yml", ".env.example", "Report"] as const;
+const tabs = ["Overview", "Checklist", "Dockerfile", "docker-compose.yml", ".env.example", "Coolify", "Dokploy", "DNS/HTTPS", "Security", "Troubleshooting", "Report"] as const;
 type Tab = (typeof tabs)[number];
 
 export function ProjectResultPage() {
@@ -87,7 +87,7 @@ export function ProjectResultPage() {
             <Badge className="border-emerald-200 bg-emerald-50 text-emerald-700">{status}</Badge>
           </div>
           <h1 className="text-2xl font-semibold text-slate-950">Deployment plan result</h1>
-          <p className="mt-1 text-sm text-slate-500">Saved artifacts from the fast template generation job.</p>
+          <p className="mt-1 text-sm text-slate-500">Saved artifacts and deployment guidance from the generation job.</p>
         </div>
         <Link to="/projects/new">
           <SecondaryButton>Generate another plan</SecondaryButton>
@@ -132,7 +132,13 @@ export function ProjectResultPage() {
       {activeTab === "Dockerfile" ? <ArtifactBlock artifact={findArtifact(artifacts, "Dockerfile")} /> : null}
       {activeTab === "docker-compose.yml" ? <ArtifactBlock artifact={findArtifact(artifacts, "docker-compose.yml")} /> : null}
       {activeTab === ".env.example" ? <ArtifactBlock artifact={findArtifact(artifacts, ".env.example")} /> : null}
-      {activeTab === "Report" ? <ArtifactBlock artifact={findArtifact(artifacts, "deployment-report.md") ?? findArtifact(artifacts, "full-deployment-report.md")} /> : null}
+      {activeTab === "Coolify" && plan ? <StepList title="Coolify steps" steps={plan.coolifySteps} /> : null}
+      {activeTab === "Dokploy" && plan ? <StepList title="Dokploy steps" steps={plan.dokploySteps} /> : null}
+      {activeTab === "DNS/HTTPS" && plan ? <StepList title="DNS and HTTPS" steps={plan.dnsSteps} /> : null}
+      {activeTab === "Security" && plan ? <StepList title="Security notes" steps={plan.securityNotes} /> : null}
+      {activeTab === "Troubleshooting" && plan ? <TroubleshootingList plan={plan} /> : null}
+      {["Coolify", "Dokploy", "DNS/HTTPS", "Security", "Troubleshooting"].includes(activeTab) && !plan ? <PendingArtifacts /> : null}
+      {activeTab === "Report" ? <ArtifactBlock artifact={findArtifact(artifacts, "deployment-report.md")} downloadable /> : null}
     </div>
   );
 }
@@ -187,7 +193,7 @@ function Checklist({ plan }: { plan: DeploymentPlan }) {
   );
 }
 
-function ArtifactBlock({ artifact }: { artifact?: ApiArtifact }) {
+function ArtifactBlock({ artifact, downloadable = false }: { artifact?: ApiArtifact; downloadable?: boolean }) {
   if (!artifact?.contentText) {
     return <Card><CardContent className="pt-5 text-sm text-slate-500">Artifact is not available.</CardContent></Card>;
   }
@@ -203,10 +209,18 @@ function ArtifactBlock({ artifact }: { artifact?: ApiArtifact }) {
             </CardTitle>
             <CardDescription>{artifact.type}</CardDescription>
           </div>
-          <Button type="button" onClick={() => navigator.clipboard.writeText(artifact.contentText ?? "")}>
-            <Clipboard size={16} />
-            Copy
-          </Button>
+          <div className="flex gap-2">
+            {downloadable ? (
+              <Button type="button" onClick={() => downloadTextFile(artifact.filename, artifact.contentText ?? "")}>
+                <Download size={16} />
+                Download
+              </Button>
+            ) : null}
+            <Button type="button" onClick={() => navigator.clipboard.writeText(artifact.contentText ?? "")}>
+              <Clipboard size={16} />
+              Copy
+            </Button>
+          </div>
         </div>
       </CardHeader>
       <CardContent>
@@ -219,13 +233,47 @@ function ArtifactBlock({ artifact }: { artifact?: ApiArtifact }) {
 }
 
 function parsePlan(artifacts: ApiArtifact[]): DeploymentPlan | null {
-  const json = artifacts.find((artifact) => artifact.filename === "deployment-plan.json" || artifact.filename === "full-deployment-plan.json")?.contentText;
+  const json = artifacts.find((artifact) => artifact.filename === "deployment-plan.json")?.contentText;
   if (!json) return null;
   try {
     return JSON.parse(json) as DeploymentPlan;
   } catch {
     return null;
   }
+}
+
+function StepList({ title, steps }: { title: string; steps: string[] }) {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>{title}</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        {steps.map((step, index) => (
+          <div key={step} className="flex gap-3 rounded-md border border-slate-200 p-3 text-sm text-slate-600">
+            <Badge>{index + 1}</Badge>
+            <span>{step}</span>
+          </div>
+        ))}
+      </CardContent>
+    </Card>
+  );
+}
+
+function TroubleshootingList({ plan }: { plan: DeploymentPlan }) {
+  return (
+    <div className="grid gap-3">
+      {plan.troubleshooting.map((item) => (
+        <Card key={item.symptom}>
+          <CardHeader>
+            <CardTitle>{item.symptom}</CardTitle>
+            <CardDescription>{item.likelyCause}</CardDescription>
+          </CardHeader>
+          <CardContent className="text-sm text-slate-600">{item.fix}</CardContent>
+        </Card>
+      ))}
+    </div>
+  );
 }
 
 function PendingArtifacts() {
@@ -242,4 +290,14 @@ function PendingArtifacts() {
 
 function findArtifact(artifacts: ApiArtifact[], filename: string) {
   return artifacts.find((artifact) => artifact.filename === filename);
+}
+
+function downloadTextFile(filename: string, content: string) {
+  const blob = new Blob([content], { type: "text/markdown;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  link.click();
+  URL.revokeObjectURL(url);
 }

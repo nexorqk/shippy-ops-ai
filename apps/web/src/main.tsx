@@ -7,6 +7,7 @@ import { DashboardPage } from "./pages/dashboard-page";
 import { NewProjectPage } from "./pages/new-project-page";
 import { ProjectResultPage } from "./pages/project-result-page";
 import { TemplatesPage } from "./pages/templates-page";
+import { TroubleshootPage } from "./pages/troubleshoot-page";
 import "./styles.css";
 
 const queryClient = new QueryClient();
@@ -20,6 +21,7 @@ const router = createBrowserRouter([
       { path: "dashboard", element: <DashboardPage /> },
       { path: "projects/new", element: <NewProjectPage /> },
       { path: "projects/:projectId/jobs/:jobId", element: <ProjectResultPage /> },
+      { path: "troubleshoot", element: <TroubleshootPage /> },
       { path: "templates", element: <TemplatesPage /> }
     ]
   }

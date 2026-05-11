@@ -139,3 +139,54 @@ Recommended next slice:
 1. Add real repository metadata inspection without executing code.
 2. Add troubleshooting mode with risk-classified diagnostic commands.
 3. Replace mock full generation content with OpenRouter structured JSON output.
+
+## 2026-05-11
+
+### MVP Quality Improvements
+
+Implemented four requested MVP improvements:
+
+- Public GitHub repository inspection:
+  - `POST /repositories/inspect`
+  - validates `github.com` URLs only
+  - fetches allowlisted raw metadata files only
+  - detects framework, package manager, services, env vars, and monorepo package files
+  - full generation worker now uses repository inspection when `repositoryUrl` exists
+- Troubleshooting mode:
+  - `POST /troubleshoot`
+  - UI route `/troubleshoot`
+  - rules-based reports for 502/proxy, database connectivity, and lockfile/package-manager failures
+  - diagnostic commands are risk-classified
+- Result page improvements:
+  - normalized artifact names for fast and full generation: `deployment-plan.json`, `deployment-report.md`, `deployment-checklist.md`
+  - added tabs for Coolify, Dokploy, DNS/HTTPS, Security, and Troubleshooting
+  - added Markdown report download in the browser
+- Tests:
+  - added Vitest
+  - repository inspector tests
+  - troubleshooting classifier tests
+
+Verification completed:
+
+```bash
+pnpm typecheck
+pnpm test
+pnpm build
+```
+
+HTTP smoke checks completed:
+
+- `POST /repositories/inspect` against `https://github.com/nexorqk/shippy-ops-ai`
+- `POST /troubleshoot`
+- `POST /projects`
+- `POST /projects/:id/generate/full`
+- `GET /jobs/:id`
+- `GET /jobs/:id/artifacts`
+
+The full generation smoke job completed with six normalized artifacts and repository-aware summary. Temporary smoke data was removed from the local database.
+
+Next recommended slice:
+
+1. Replace rules/mock generation with OpenRouter structured JSON behind feature flags.
+2. Add auth/session and per-user project boundaries beyond the demo user.
+3. Add admin list views for failed jobs and troubleshooting reports.

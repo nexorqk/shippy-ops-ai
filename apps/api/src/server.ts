@@ -4,7 +4,9 @@ import Fastify from "fastify";
 import { ZodError } from "zod";
 import { registerJobRoutes } from "./routes/jobs.js";
 import { registerProjectRoutes } from "./routes/projects.js";
+import { registerRepositoryRoutes } from "./routes/repositories.js";
 import { registerTemplateRoutes } from "./routes/templates.js";
+import { registerTroubleshootRoutes } from "./routes/troubleshoot.js";
 
 const app = Fastify({
   logger: {
@@ -37,8 +39,10 @@ app.setErrorHandler((error, request, reply) => {
 app.get("/health", async () => ({ status: "ok" }));
 
 await registerTemplateRoutes(app);
+await registerRepositoryRoutes(app);
 await registerProjectRoutes(app);
 await registerJobRoutes(app);
+await registerTroubleshootRoutes(app);
 
 const port = Number(process.env.API_PORT ?? 4000);
 const host = process.env.API_HOST ?? "0.0.0.0";

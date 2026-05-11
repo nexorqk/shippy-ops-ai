@@ -1,9 +1,10 @@
-import { Activity, FolderKanban, LayoutTemplate, PlusCircle } from "lucide-react";
+import { Activity, FolderKanban, LayoutTemplate, PlusCircle, Stethoscope } from "lucide-react";
 import { NavLink, Outlet } from "react-router-dom";
 
 const navItems = [
   { to: "/dashboard", label: "Dashboard", icon: Activity },
   { to: "/projects/new", label: "New project", icon: PlusCircle },
+  { to: "/troubleshoot", label: "Troubleshoot", icon: Stethoscope },
   { to: "/templates", label: "Templates", icon: LayoutTemplate }
 ];
 
