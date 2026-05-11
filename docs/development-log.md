@@ -190,3 +190,34 @@ Next recommended slice:
 1. Replace rules/mock generation with OpenRouter structured JSON behind feature flags.
 2. Add auth/session and per-user project boundaries beyond the demo user.
 3. Add admin list views for failed jobs and troubleshooting reports.
+
+### OAuth and Admin MVP
+
+Added auth/admin foundation:
+
+- Added `AuthSession` Prisma model.
+- Added cookie-backed sessions through `@fastify/cookie`.
+- Added Google OAuth routes:
+  - `GET /auth/google`
+  - `GET /auth/google/callback`
+  - `GET /auth/session`
+  - `POST /auth/logout`
+- Added local demo admin fallback controlled by `ALLOW_DEMO_AUTH`.
+- Added `ADMIN_EMAILS` for assigning admin role on OAuth login.
+- Replaced project/job/troubleshooting demo-user usage with current-session user resolution.
+- Added admin API:
+  - `GET /admin/metrics`
+  - `GET /admin/users`
+  - `GET /admin/jobs`
+- Added `/admin` UI with metrics, users, and recent jobs.
+- Added header session display, Google login link, and logout action.
+
+Verification required for this slice:
+
+```bash
+pnpm prisma migrate dev --name auth_sessions
+pnpm db:seed
+pnpm typecheck
+pnpm test
+pnpm build
+```

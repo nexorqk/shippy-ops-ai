@@ -1,7 +1,8 @@
 import { CreateProjectSchema, DeploymentPlanSchema } from "@shippy-ops-ai/shared";
 import type { FastifyInstance } from "fastify";
 import { z } from "zod";
-import { ensureDemoUser, prisma } from "../db.js";
+import { prisma } from "../db.js";
+import { requireUser } from "../lib/auth.js";
 import { buildFastPlan, planToMarkdown } from "../lib/fast-plan.js";
 import { fullGenerationQueue } from "../lib/queue.js";
 import { assertFastPlanLimit, currentBillingPeriod } from "../lib/usage.js";
@@ -9,8 +10,9 @@ import { assertFastPlanLimit, currentBillingPeriod } from "../lib/usage.js";
 const IdParamsSchema = z.object({ id: z.string().min(1) });
 
 export async function registerProjectRoutes(app: FastifyInstance) {
-  app.get("/projects", async () => {
-    const user = await ensureDemoUser();
+  app.get("/projects", async (request, reply) => {
+    const user = await requireUser(request, reply);
+    if (!user) return;
     const projects = await prisma.project.findMany({
       where: { userId: user.id },
       include: { services: true, environmentVariables: true, jobs: { orderBy: { createdAt: "desc" }, take: 1 } },
@@ -22,7 +24,8 @@ export async function registerProjectRoutes(app: FastifyInstance) {
 
   app.post("/projects", async (request, reply) => {
     const input = CreateProjectSchema.parse(request.body);
-    const user = await ensureDemoUser();
+    const user = await requireUser(request, reply);
+    if (!user) return;
 
     const project = await prisma.project.create({
       data: {
@@ -60,7 +63,8 @@ export async function registerProjectRoutes(app: FastifyInstance) {
 
   app.get<{ Params: { id: string } }>("/projects/:id", async (request, reply) => {
     const params = IdParamsSchema.parse(request.params);
-    const user = await ensureDemoUser();
+    const user = await requireUser(request, reply);
+    if (!user) return;
     const project = await prisma.project.findFirst({
       where: { id: params.id, userId: user.id },
       include: {
@@ -79,7 +83,8 @@ export async function registerProjectRoutes(app: FastifyInstance) {
 
   app.post<{ Params: { id: string } }>("/projects/:id/generate/fast", async (request, reply) => {
     const params = IdParamsSchema.parse(request.params);
-    const user = await ensureDemoUser();
+    const user = await requireUser(request, reply);
+    if (!user) return;
     const { billingPeriod } = await assertFastPlanLimit(user.id);
 
     const project = await prisma.project.findFirst({
@@ -204,7 +209,8 @@ export async function registerProjectRoutes(app: FastifyInstance) {
 
   app.post<{ Params: { id: string } }>("/projects/:id/generate/full", async (request, reply) => {
     const params = IdParamsSchema.parse(request.params);
-    const user = await ensureDemoUser();
+    const user = await requireUser(request, reply);
+    if (!user) return;
 
     const project = await prisma.project.findFirst({
       where: { id: params.id, userId: user.id },

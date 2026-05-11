@@ -7,6 +7,8 @@ This repository starts with the first vertical slice:
 - Vite + React + TypeScript web app with React Router
 - Fastify + TypeScript API
 - BullMQ worker foundation for long-running generation jobs
+- Google OAuth/session foundation with local demo auth fallback
+- Admin MVP for users, jobs, failures, and basic metrics
 - Prisma + PostgreSQL persistence
 - Seeded deployment template catalog
 - Fast template-based generation flow
@@ -67,3 +69,24 @@ The project wizard supports two generation modes:
 
 - Fast plan: deterministic template generation completed inside the API request.
 - Full package: queued BullMQ job processed by `apps/worker` with live SSE progress events.
+
+## Auth and Admin
+
+Local development uses a demo admin user unless `ALLOW_DEMO_AUTH=false`.
+
+For Google OAuth, set:
+
+```env
+GOOGLE_CLIENT_ID=""
+GOOGLE_CLIENT_SECRET=""
+AUTH_SECRET=""
+ADMIN_EMAILS="you@example.com"
+```
+
+Google OAuth redirect URI:
+
+```txt
+http://localhost:4000/auth/google/callback
+```
+
+Admin UI is available at `/admin` for users with role `admin`.

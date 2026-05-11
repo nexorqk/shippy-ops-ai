@@ -1,12 +1,14 @@
 import { TroubleshootingInputSchema } from "@shippy-ops-ai/shared";
 import type { FastifyInstance } from "fastify";
-import { ensureDemoUser, prisma } from "../db.js";
+import { prisma } from "../db.js";
+import { requireUser } from "../lib/auth.js";
 import { buildTroubleshootingReport } from "../lib/troubleshooting.js";
 
 export async function registerTroubleshootRoutes(app: FastifyInstance) {
   app.post("/troubleshoot", async (request, reply) => {
     const input = TroubleshootingInputSchema.parse(request.body);
-    const user = await ensureDemoUser();
+    const user = await requireUser(request, reply);
+    if (!user) return;
     const report = buildTroubleshootingReport(input);
 
     const job = await prisma.generationJob.create({

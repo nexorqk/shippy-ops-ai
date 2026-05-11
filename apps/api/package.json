@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@shippy-ops-ai/shared": "workspace:*",
+    "@fastify/cookie": "^11.0.2",
     "@fastify/cors": "^11.0.1",
     "@prisma/client": "^6.8.2",
     "bullmq": "^5.53.2",

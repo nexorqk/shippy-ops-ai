@@ -49,10 +49,13 @@ Implemented MVP 1 vertical slice plus MVP 2 foundation:
 10. Public GitHub repository inspection reads allowlisted metadata files without executing code.
 11. Troubleshooting mode creates risk-classified diagnostic reports.
 12. Result page has normalized artifact names, guidance tabs, and Markdown download.
+13. Google OAuth/session foundation exists; local dev uses demo admin fallback unless `ALLOW_DEMO_AUTH=false`.
+14. Admin MVP exists at `/admin` with metrics, users, and jobs.
 
 Not implemented yet:
 
 - OAuth/session auth beyond local demo user
+- Full production auth hardening beyond Google OAuth MVP
 - Real AI generation with OpenRouter
 - Private repository access
 - Stripe billing

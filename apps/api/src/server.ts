@@ -1,7 +1,10 @@
 import "dotenv/config";
+import cookie from "@fastify/cookie";
 import cors from "@fastify/cors";
 import Fastify from "fastify";
 import { ZodError } from "zod";
+import { registerAdminRoutes } from "./routes/admin.js";
+import { registerAuthRoutes } from "./routes/auth.js";
 import { registerJobRoutes } from "./routes/jobs.js";
 import { registerProjectRoutes } from "./routes/projects.js";
 import { registerRepositoryRoutes } from "./routes/repositories.js";
@@ -17,6 +20,9 @@ const app = Fastify({
 await app.register(cors, {
   origin: [process.env.APP_URL ?? "http://localhost:3000", "http://localhost:5173"],
   credentials: true
+});
+await app.register(cookie, {
+  secret: process.env.AUTH_SECRET || undefined
 });
 
 app.setErrorHandler((error, request, reply) => {
@@ -38,11 +44,13 @@ app.setErrorHandler((error, request, reply) => {
 
 app.get("/health", async () => ({ status: "ok" }));
 
+await registerAuthRoutes(app);
 await registerTemplateRoutes(app);
 await registerRepositoryRoutes(app);
 await registerProjectRoutes(app);
 await registerJobRoutes(app);
 await registerTroubleshootRoutes(app);
+await registerAdminRoutes(app);
 
 const port = Number(process.env.API_PORT ?? 4000);
 const host = process.env.API_HOST ?? "0.0.0.0";

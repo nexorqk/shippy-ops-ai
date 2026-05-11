@@ -50,9 +50,31 @@ export type ApiTemplate = {
   contentMarkdown: string;
 };
 
+export type ApiUser = {
+  id: string;
+  email: string;
+  name: string | null;
+  image: string | null;
+  role: "user" | "admin";
+  plan: string;
+  subscriptionStatus: string;
+};
+
+export type AdminMetrics = {
+  users: number;
+  projects: number;
+  jobs: number;
+  failedJobs: number;
+  templates: number;
+  troubleshootingReports: number;
+  mrr: number;
+  churn: number;
+};
+
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(`${API_URL}${path}`, {
     ...init,
+    credentials: "include",
     headers: {
       "Content-Type": "application/json",
       ...init?.headers
@@ -68,6 +90,8 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 }
 
 export const api = {
+  getSession: () => request<{ user: ApiUser | null; demo: boolean }>("/auth/session"),
+  logout: () => request<{ ok: boolean }>("/auth/logout", { method: "POST" }),
   listProjects: () => request<{ projects: ApiProject[] }>("/projects"),
   createProject: (input: CreateProjectInput) =>
     request<{ project: ApiProject }>("/projects", {
@@ -94,5 +118,14 @@ export const api = {
     }),
   getJob: (jobId: string) => request<{ job: ApiJob }>(`/jobs/${jobId}`),
   jobStreamUrl: (jobId: string) => `${API_URL}/jobs/${jobId}/stream`,
-  listTemplates: () => request<{ templates: ApiTemplate[] }>("/templates")
+  listTemplates: () => request<{ templates: ApiTemplate[] }>("/templates"),
+  adminMetrics: () => request<{ metrics: AdminMetrics; recentJobs: ApiJob[] }>("/admin/metrics"),
+  adminUsers: () =>
+    request<{
+      users: Array<ApiUser & { createdAt: string; _count: { projects: number; jobs: number } }>;
+    }>("/admin/users"),
+  adminJobs: () =>
+    request<{
+      jobs: Array<ApiJob & { user: { email: string; name: string | null }; project: { name: string; domain: string } | null; artifacts: ApiArtifact[] }>;
+    }>("/admin/jobs")
 };

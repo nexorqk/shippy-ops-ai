@@ -3,6 +3,7 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import { createBrowserRouter, Navigate, RouterProvider } from "react-router-dom";
 import { AppLayout } from "./pages/app-layout";
+import { AdminPage } from "./pages/admin-page";
 import { DashboardPage } from "./pages/dashboard-page";
 import { NewProjectPage } from "./pages/new-project-page";
 import { ProjectResultPage } from "./pages/project-result-page";
@@ -22,7 +23,8 @@ const router = createBrowserRouter([
       { path: "projects/new", element: <NewProjectPage /> },
       { path: "projects/:projectId/jobs/:jobId", element: <ProjectResultPage /> },
       { path: "troubleshoot", element: <TroubleshootPage /> },
-      { path: "templates", element: <TemplatesPage /> }
+      { path: "templates", element: <TemplatesPage /> },
+      { path: "admin", element: <AdminPage /> }
     ]
   }
 ]);

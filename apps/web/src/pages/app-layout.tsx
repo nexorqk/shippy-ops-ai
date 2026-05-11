@@ -1,5 +1,7 @@
-import { Activity, FolderKanban, LayoutTemplate, PlusCircle, Stethoscope } from "lucide-react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Activity, FolderKanban, LayoutDashboard, LayoutTemplate, LogOut, PlusCircle, Stethoscope } from "lucide-react";
 import { NavLink, Outlet } from "react-router-dom";
+import { API_URL, api } from "../lib/api";
 
 const navItems = [
   { to: "/dashboard", label: "Dashboard", icon: Activity },
@@ -9,6 +11,11 @@ const navItems = [
 ];
 
 export function AppLayout() {
+  const queryClient = useQueryClient();
+  const { data } = useQuery({ queryKey: ["session"], queryFn: api.getSession });
+  const user = data?.user;
+  const visibleNavItems = user?.role === "admin" ? [...navItems, { to: "/admin", label: "Admin", icon: LayoutDashboard }] : navItems;
+
   return (
     <div className="min-h-screen bg-slate-50">
       <aside className="fixed inset-y-0 left-0 hidden w-64 border-r border-slate-200 bg-white lg:block">
@@ -22,7 +29,7 @@ export function AppLayout() {
           </div>
         </div>
         <nav className="space-y-1 p-3">
-          {navItems.map((item) => {
+          {visibleNavItems.map((item) => {
             const Icon = item.icon;
             return (
               <NavLink
@@ -47,6 +54,30 @@ export function AppLayout() {
           <div>
             <p className="text-sm font-medium text-slate-950">Local MVP workspace</p>
             <p className="text-xs text-slate-500">Fast template generation, persisted in PostgreSQL</p>
+          </div>
+          <div className="flex items-center gap-3">
+            {user ? (
+              <>
+                <div className="hidden text-right sm:block">
+                  <div className="text-sm font-medium text-slate-950">{user.name ?? user.email}</div>
+                  <div className="text-xs text-slate-500">{data?.demo ? "Demo session" : user.role}</div>
+                </div>
+                <button
+                  className="inline-flex h-9 items-center gap-2 rounded-md border border-slate-200 px-3 text-sm text-slate-700 hover:bg-slate-50"
+                  onClick={async () => {
+                    await api.logout();
+                    await queryClient.invalidateQueries({ queryKey: ["session"] });
+                  }}
+                >
+                  <LogOut size={15} />
+                  Logout
+                </button>
+              </>
+            ) : (
+              <a className="rounded-md bg-slate-950 px-3 py-2 text-sm font-medium text-white" href={`${API_URL}/auth/google`}>
+                Sign in with Google
+              </a>
+            )}
           </div>
         </header>
         <main className="px-4 py-6 lg:px-8">

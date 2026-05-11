@@ -220,7 +220,7 @@ PORT=8080`
 async function main() {
   await prisma.user.upsert({
     where: { email: "demo@shippy-ops-ai.local" },
-    update: {},
+    update: { role: "admin" },
     create: {
       email: "demo@shippy-ops-ai.local",
       name: "Demo User",
